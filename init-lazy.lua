@@ -22,55 +22,14 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 
-
+-- NOTE: recommended by averms/black-nvim
+-- first, create a venv in ~/.local/venv/nvim, then
 vim.cmd("let g:python3_host_prog = $HOME . '/.local/venv/nvim/bin/python'")
-
--- Setup lazy.nvim
-require("lazy").setup({
-  spec = {
-    -- add your plugins here
-    { "folke/tokyonight.nvim", opts = {} },
-    { 'mfussenegger/nvim-lint', opts = {} },
-    { 'fisadev/vim-isort', opts = {} },
-
-    use 'averms/black-nvim'
-
-    use {'akinsho/bufferline.nvim', tag = "*", requires = 'nvim-tree/nvim-web-devicons'}
-
-    use 'neovim/nvim-lspconfig'
-    use 'hrsh7th/cmp-nvim-lsp'
-    use 'hrsh7th/cmp-buffer'
-    use 'hrsh7th/cmp-path'
-    use 'hrsh7th/cmp-cmdline'
-    use 'hrsh7th/nvim-cmp'
-
-    use ({
-        'nvimdev/lspsaga.nvim',
-        after = 'nvim-lspconfig',
-        config = function()
-            require('lspsaga').setup({})
-        end,
-    })
-
-	use {
-        'nvim-treesitter/nvim-treesitter',
-        run = function()
-
-  },
-  -- Configure any other settings here. See the documentation for more details.
-  -- colorscheme that will be used when installing plugins.
-  install = { colorscheme = { "habamax" } },
-  -- automatically check for plugin updates
-  checker = { enabled = true },
-})
 
 
 vim.cmd("set number")
 vim.cmd("set termguicolors")
 vim.cmd("set background=dark")
--- vim.cmd("colorscheme nightfly")
--- vim.cmd("colorscheme PaperColor")
-vim.cmd("colorscheme tokyonight")
 
 vim.cmd("set tabstop=4")
 
@@ -83,7 +42,92 @@ vim.cmd("set clipboard+=unnamedplus")
 vim.cmd("vsplit")
 
 vim.opt.termguicolors = true
--- require("bufferline").setup{}
+
+
+require("lazy").setup({
+  spec = {
+    -- add your plugins here
+    { "github/copilot.vim" },
+    { "folke/tokyonight.nvim" },
+    { 'mfussenegger/nvim-lint' },
+
+    { 'averms/black-nvim', build = ":UpdateRemotePlugins" },
+
+    { 'akinsho/bufferline.nvim', requires = 'nvim-tree/nvim-web-devicons'},
+
+    { 'neovim/nvim-lspconfig', },
+    { 'hrsh7th/cmp-nvim-lsp' },
+    { 'hrsh7th/cmp-buffer' },
+    { 'hrsh7th/cmp-path' },
+    { 'hrsh7th/cmp-cmdline' },
+    { 'hrsh7th/nvim-cmp' },
+
+    {
+        'nvim-treesitter/nvim-treesitter',
+        build = ":TSUpdate",
+        config = function ()
+            local configs = require("nvim-treesitter.configs")
+
+            configs.setup({
+                ensure_installed = { "c", "python", "rust", "json", "lua", "vim", "vimdoc", "query", "elixir", "javascript", "html" },
+                sync_install = false,
+                highlight = { enable = true },
+                indent = { enable = true },
+                fold = { enable = true },
+              })
+        end
+    },
+
+    {
+	'nvimdev/lspsaga.nvim',
+	config = function()
+        	require('lspsaga').setup({})
+    	end,
+    	dependencies = {
+        	'nvim-treesitter/nvim-treesitter', -- optional
+        	'nvim-tree/nvim-web-devicons',     -- optional
+    	}
+    },
+
+    {
+	    "L3MON4D3/LuaSnip",
+    	-- follow latest release.
+    	version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+    	-- install jsregexp (optional!).
+    	build = "make install_jsregexp"
+    },
+
+    {
+        'nvim-telescope/telescope.nvim', version = '0.1.x',
+        dependencies = { 'nvim-lua/plenary.nvim' }
+    },
+
+    {
+        "nvim-neo-tree/neo-tree.nvim",
+        branch = "v3.x",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+            "MunifTanjim/nui.nvim",
+          -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+        }
+    },
+
+    -- Configure any other settings here. See the documentation for more details.
+    -- colorscheme that will be used when installing plugins.
+    install = { colorscheme = { "tokyonight" } },
+    -- automatically check for plugin updates
+    checker = { enabled = true },
+  }
+})
+
+
+require("bufferline").setup{}
+
+-- vim.cmd("colorscheme nightfly")
+-- vim.cmd("colorscheme PaperColor")
+
+vim.cmd("colorscheme tokyonight")
 
 vim.o.completeopt = 'menuone,noselect,noinsert,popup'
 vim.api.nvim_create_autocmd({ 'VimEnter' }, {
@@ -126,4 +170,3 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
 --         require("lint").try_lint()
 --     end,
 -- })
-
