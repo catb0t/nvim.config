@@ -26,7 +26,6 @@ vim.g.maplocalleader = "\\"
 -- first, create a venv in ~/.local/venv/nvim, then
 vim.cmd("let g:python3_host_prog = $HOME . '/.local/venv/nvim/bin/python'")
 
-
 vim.cmd("set number")
 vim.cmd("set termguicolors")
 vim.cmd("set background=dark")
@@ -40,9 +39,25 @@ vim.cmd("set shiftwidth=4")
 
 vim.cmd("set clipboard+=unnamedplus")
 vim.cmd("vsplit")
-
+vim.cmd("set inccommand=nosplit")
+vim.cmd("set updatetime=400")
 vim.opt.termguicolors = true
 
+vim.cmd("let g:copilot_workspace_folders = ['~/projects/']")
+vim.cmd("let g:copilot_python_interpreter = $HOME . '/.local/venv/nvim/bin/python'")
+
+vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
+  expr = true,
+  replace_keycodes = false
+})
+vim.g.copilot_no_tab_map = true
+
+vim.api.nvim_set_keymap(
+    't',
+    '<Leader><ESC>',
+    '<C-\\><C-n>',
+    {noremap = true}
+)
 
 require("lazy").setup({
   spec = {
@@ -51,16 +66,20 @@ require("lazy").setup({
     { "folke/tokyonight.nvim" },
     { 'mfussenegger/nvim-lint' },
 
-    { 'averms/black-nvim', build = ":UpdateRemotePlugins" },
+    -- { 'averms/black-nvim', build = ":UpdateRemotePlugins" },
 
     { 'akinsho/bufferline.nvim', requires = 'nvim-tree/nvim-web-devicons'},
 
-    { 'neovim/nvim-lspconfig', },
     { 'hrsh7th/cmp-nvim-lsp' },
     { 'hrsh7th/cmp-buffer' },
     { 'hrsh7th/cmp-path' },
     { 'hrsh7th/cmp-cmdline' },
     { 'hrsh7th/nvim-cmp' },
+    { 'neovim/nvim-lspconfig',
+        config = function()
+            require('lspconfig').pylsp.setup{}
+        end
+    },
 
     {
         'nvim-treesitter/nvim-treesitter',
@@ -96,6 +115,8 @@ require("lazy").setup({
     	-- install jsregexp (optional!).
     	build = "make install_jsregexp"
     },
+
+    { 'saadparwaiz1/cmp_luasnip' },
 
     {
         'nvim-telescope/telescope.nvim', version = '0.1.x',
@@ -147,19 +168,10 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 })
 
 
-vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-    pattern = {"*.py"},
-    callback = function()
-      vim.cmd('exe "!isort --profile black %"')
-      vim.cmd('exe "!black %"')
-      vim.cmd('redraw')
-    end,
-})
-
--- require('lint').linters_by_ft = {
---     markdown = {'vale',},
---     python = {'pylint'},
--- }
+require('lint').linters_by_ft = {
+    markdown = {'vale',},
+    python = {'pylint'},
+}
 
 
 -- vim.api.nvim_create_autocmd({ "BufWritePost" }, {
@@ -167,6 +179,37 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
 --
 --     -- try_lint without arguments runs the linters defined in `linters_by_ft`
 --     -- for the current filetype
---         require("lint").try_lint()
+--         -- require("lint").try_lint()
 --     end,
 -- })
+
+vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+    pattern = {"*.py"},
+    callback = function()
+      -- vim.cmd('exe "!isort --profile black %"')
+        vim.cmd('exe "!black %"')
+        vim.cmd('redraw')
+    end,
+})
+
+vim.api.nvim_create_autocmd({ "CursorHold" }, {
+    pattern = "*",
+    callback = function()
+        for _, winid in pairs(vim.api.nvim_tabpage_list_wins(0)) do
+            if vim.api.nvim_win_get_config(winid).zindex then
+                return
+            end
+        end
+        vim.diagnostic.open_float({
+            scope = "cursor",
+            focusable = false,
+            close_events = {
+                "CursorMoved",
+                "CursorMovedI",
+                "BufHidden",
+                "InsertCharPre",
+                "WinLeave",
+            },
+        })
+    end
+})
