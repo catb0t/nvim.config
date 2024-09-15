@@ -24,7 +24,7 @@ vim.g.maplocalleader = "\\"
 
 -- NOTE: recommended by averms/black-nvim
 -- first, create a venv in ~/.local/venv/nvim, then
-vim.cmd("let g:python3_host_prog = $HOME . '/.local/venv/nvim/bin/python'")
+-- vim.cmd("let g:python3_host_prog = $HOME . '/.local/venv/nvim/bin/python'")
 
 vim.cmd("set number")
 vim.cmd("set termguicolors")
@@ -41,23 +41,24 @@ vim.cmd("set clipboard+=unnamedplus")
 vim.cmd("vsplit")
 vim.cmd("set inccommand=nosplit")
 vim.cmd("set updatetime=400")
-vim.opt.termguicolors = true
+vim.cmd('let mapleader=",')
 
-vim.cmd("let g:copilot_workspace_folders = ['~/projects/']")
+
+vim.cmd("let g:copilot_workspace_folders = ['~/projects/git/*']")
 vim.cmd("let g:copilot_python_interpreter = $HOME . '/.local/venv/nvim/bin/python'")
 
-vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
+vim.keymap.set('i', '<C-e>', 'copilot#Accept("\\<CR>")', {
   expr = true,
   replace_keycodes = false
 })
 vim.g.copilot_no_tab_map = true
 
-vim.api.nvim_set_keymap(
-    't',
-    '<Leader><ESC>',
-    '<C-\\><C-n>',
-    {noremap = true}
-)
+-- vim.api.nvim_set_keymap(
+--     't',
+--     '<Leader><ESC>',
+--     '<C-\\><C-n>',
+--     {noremap = true}
+-- )
 
 require("lazy").setup({
   spec = {
@@ -89,7 +90,7 @@ require("lazy").setup({
 
             configs.setup({
                 ensure_installed = { "c", "python", "rust", "json", "lua", "vim", "vimdoc", "query", "elixir", "javascript", "html" },
-                sync_install = false,
+                sync_install = true,
                 highlight = { enable = true },
                 indent = { enable = true },
                 fold = { enable = true },
@@ -98,8 +99,8 @@ require("lazy").setup({
     },
 
     {
-	'nvimdev/lspsaga.nvim',
-	config = function()
+        'nvimdev/lspsaga.nvim',
+        config = function()
         	require('lspsaga').setup({})
     	end,
     	dependencies = {
@@ -132,6 +133,16 @@ require("lazy").setup({
             "MunifTanjim/nui.nvim",
           -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
         }
+    },
+
+    {
+      'sudormrfbin/cheatsheet.nvim',
+
+      dependencies = {
+        {'nvim-telescope/telescope.nvim'},
+        {'nvim-lua/popup.nvim'},
+        {'nvim-lua/plenary.nvim'},
+      }
     },
 
     -- Configure any other settings here. See the documentation for more details.
@@ -186,8 +197,8 @@ require('lint').linters_by_ft = {
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
     pattern = {"*.py"},
     callback = function()
-      -- vim.cmd('exe "!isort --profile black %"')
         vim.cmd('exe "!black %"')
+        vim.cmd('exe "!isort --profile black %"')
         vim.cmd('redraw')
     end,
 })
